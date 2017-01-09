@@ -32,7 +32,7 @@ class AuthyUser extends AuthyResponse
      */
     public function __construct($raw_response)
     {
-        $body = $raw_response->json(['object' => true]);
+        $body = \GuzzleHttp\json_encode($raw_response->getBody()->getContents());
 
         if (isset($body->user)) {
             // response is {user: {id: id}}

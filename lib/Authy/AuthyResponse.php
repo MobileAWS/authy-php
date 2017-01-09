@@ -37,7 +37,8 @@ class AuthyResponse
     public function __construct($raw_response)
     {
         $this->raw_response = $raw_response;
-        $this->body = (! isset($raw_response->body)) ? $raw_response->json(['object' => true]) : $raw_response->body;;
+        $this->body = \GuzzleHttp\json_decode($raw_response->getBody());
+//        print_r($this->body);exit();
         $this->errors = new \stdClass();
 
         // Handle errors
@@ -84,6 +85,11 @@ class AuthyResponse
         return $this->errors;
     }
 
+    public function body()
+    {
+        return $this->body;
+    }
+    
     public function message()
     {
         return $this->body->message;
