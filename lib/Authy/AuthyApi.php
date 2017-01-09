@@ -42,7 +42,7 @@ class AuthyApi {
             'base_uri' => "{$api_url}/protected/json/",
             'headers' => array('User-Agent' => $this->__getUserAgent(), 'X-Authy-API-Key' => $api_key),
             'http_errors' => false,
-            'debug' => true
+            'debug' => false
         ));
 
         $this->api_key = $api_key;
@@ -214,10 +214,10 @@ class AuthyApi {
      *
      * @param string $authy_id User's id stored in your database
      * @param string $message Required, the message shown to the user when the approval request arrives.
-     * @param number $expires_in Optional, defaults to 86400 (one day). 
+     * @param number $expires_in Optional, defaults to 86400 (one day).
      * @param array $details For example $details['Requested by'] = 'MacBook Pro, Chrome'; it will be displayed on Authy app
      * @param array $hidden_details Same usage as $detail except this detail is not shown in Authy app
-     * @param array $logos Contains the logos that will be shown to user. The logos parameter is expected to be an array of objects, each object with two fields: res (values are default,low,med,high) and url 
+     * @param array $logos Contains the logos that will be shown to user. The logos parameter is expected to be an array of objects, each object with two fields: res (values are default,low,med,high) and url
      *
      * @return AuthyResponse the server response
      */
@@ -265,7 +265,7 @@ class AuthyApi {
     /**
      * Returns callback params
      *
-     * @return AuthyResponse 
+     * @return AuthyResponse
      */
     public function oneTouchGetCallbackParams() {
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
@@ -275,9 +275,9 @@ class AuthyApi {
             $params = $_GET;
         }
         return $params;
-//        return new AuthyResponse($resp);   
+//        return new AuthyResponse($resp);
     }
-    
+
     /**
      * Private fucntion to validate signature in X-Authy-Signature key of headers
      *
@@ -289,10 +289,10 @@ class AuthyApi {
      *
      * @return boolean
      */
-    
-    
+
+
     private function _validateOneTouchSignature($signature, $nonce, $method, $url, $params) {
-        
+
         $sorted_params = $this->_sort_params($params);
         $data = $nonce."|".$method."|".$url."|".$sorted_params;
         $digest = hash_hmac('sha256', $data,$this->api_ke,true);
@@ -302,13 +302,13 @@ class AuthyApi {
 //        return $calcualted_signature == $signature;
         return true;
     }
-    
+
     /**
      * converts if boolean true/false to string 'true' or 'false'
      *
-     * * @param mixed $value 
-     * 
-     * @return string 
+     * * @param mixed $value
+     *
+     * @return string
      */
     private function _check_bool($value) {
         if (is_bool($value)) {
@@ -318,13 +318,13 @@ class AuthyApi {
         }
         return $value;
     }
-    
+
     /**
      * Sort params in case-sensitive order
      *
-     * * @param mixed $value 
-     * 
-     * @return array 
+     * * @param mixed $value
+     *
+     * @return array
      */
     private function _sort_params($params) {
         $new_params = array();
@@ -413,7 +413,7 @@ class AuthyApi {
                 )
             ));
         } catch (Exception $e) {
-            
+
         }
 
         return new AuthyResponse($resp);
