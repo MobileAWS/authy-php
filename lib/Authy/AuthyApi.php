@@ -291,17 +291,12 @@ class AuthyApi {
      */
 
 
-    private function _validateOneTouchSignature($signature, $nonce, $method, $url, $params) {
-
-        $sorted_params = $this->_sort_params($params);
-        $data = $nonce."|".$method."|".$url."|".$sorted_params;
-        $digest = hash_hmac('sha256', $data,$this->api_ke,true);
-
-        $calcualted_signature = base64_encode($digest);
-        // it is not working - will come back to it later
-//        return $calcualted_signature == $signature;
-        return true;
-    }
+     public function validateOneTouchSignature($signature, $nonce, $method, $url, $params) {
+         $sorted_params = http_build_query($this->_sort_params($params));
+         $data = $nonce."|".$method."|".$url."|".$sorted_params;
+         $calculated_signature = base64_encode(hash_hmac('sha256', $data,$this->api_key,true));
+         return $calculated_signature == $signature;
+     }
 
     /**
      * converts if boolean true/false to string 'true' or 'false'
