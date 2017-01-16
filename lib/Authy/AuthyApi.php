@@ -275,7 +275,6 @@ class AuthyApi {
             $params = $_GET;
         }
         return $params;
-//        return new AuthyResponse($resp);
     }
 
     /**
