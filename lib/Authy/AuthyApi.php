@@ -230,7 +230,7 @@ class AuthyApi {
         );
 
         // a little hack to build query for logos - GuzzleHttp is not building correct format when using multiple logo objects
-        $logo_query = '';
+        $logo_query = array();
         foreach ($logos as $logo) {
             $logo_query[] = 'logos[][res]=' . urlencode($logo['res']);
             $logo_query[] = 'logos[][url]=' . urlencode($logo['url']);
