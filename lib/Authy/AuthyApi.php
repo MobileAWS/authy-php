@@ -23,6 +23,10 @@
 
 namespace Authy;
 
+define('MIN_TOKEN_SIZE',6);
+define('MAX_TOKEN_SIZE',12);
+define('MAX_STRING_SIZE',200);
+
 class AuthyApi {
 
     const VERSION = '2.5.0';
@@ -55,21 +59,23 @@ class AuthyApi {
      * @param  string    $email        New user's email
      * @param  string    $cellphone    New user's cellphone
      * @param  int       $country_code New user's country code. defaults to USA(1)
+     * @param  boolean   $send_install_link_via_sms send authy app link via sms if true
      * @return AuthyUser the new registered user
      */
-    public function registerUser($email, $cellphone, $country_code = 1) {
-        $resp = $this->rest->post('users/new', array(
-            'query' => array(
-                'user' => array(
-                    "email" => $email,
-                    "cellphone" => $cellphone,
-                    "country_code" => $country_code
-                )
-            )
-        ));
+     public function registerUser($email, $cellphone, $country_code = 1, $send_install_link_via_sms = false) {
+         $resp = $this->rest->post('users/new', array(
+             'query' => array(
+                 'user' => array(
+                     "email" => $email,
+                     "cellphone" => $cellphone,
+                     "country_code" => $country_code
+                 ),
+                 'send_install_link_via_sm' => $send_install_link_via_sms == true ? true : false
+             )
+         ));
 
-        return new AuthyUser($resp);
-    }
+         return new AuthyUser($resp);
+     }
 
     /**
      * Verify a given token.
@@ -222,29 +228,41 @@ class AuthyApi {
      * @return AuthyResponse the server response
      */
     public function oneTouchVerificationRequest($authy_id, $message = null, $expires_in = null, $details = array(), $hidden_details = array(), $logos = array()) {
-        $query = array(
-            'message' => $message,
-            'details' => $details,
-            'hidden_details' => $hidden_details,
-            'seconds_to_expire' => $expires_in,
-        );
+      if( !is_numeric($authy_id) && $authy_id > 0 ){
+        throw new AuthyFormatException("Invalid authy id");
+      }
+      if( empty($message) ){
+        throw new AuthyFormatException("Invalid message - should not be empty. It is required");
+      }
 
-        // a little hack to build query for logos - GuzzleHttp is not building correct format when using multiple logo objects
-        $logo_query = array();
-        foreach ($logos as $logo) {
-            $logo_query[] = 'logos[][res]=' . urlencode($logo['res']);
-            $logo_query[] = 'logos[][url]=' . urlencode($logo['url']);
-        }
-        $logo_query = implode('&', $logo_query);
+      if( !empty($expires_in) and !is_numeric($expires_in) ){
+        throw new AuthyFormatException("Invalid seconds_to_expire. 0 or positive integer required.");
+      }
 
-        $query_str = http_build_query($query) . '&' . $logo_query;
+      $query = array(
+          'message' => substr($message,0,MAX_STRING_SIZE),
+          'details' => $this->__clean_array($details),
+          'hidden_details' => $this->__clean_array($hidden_details),
+          'seconds_to_expire' => $expires_in,
+      );
 
-        $authy_id = urlencode($authy_id);
-        $resp = $this->rest->post($this->api_url . "/onetouch/json/users/$authy_id/approval_requests", array(
-            'query' => $query_str
-        ));
+      $logos = $this->__clean_logos($logos);
+      // a little hack to build query for logos - GuzzleHttp is not building correct format when using multiple logo objects
+      $logo_query = array();
+      foreach ($logos as $logo) {
+          $logo_query[] = 'logos[][res]=' . urlencode($logo['res']);
+          $logo_query[] = 'logos[][url]=' . urlencode($logo['url']);
+      }
+      $logo_query = implode('&', $logo_query);
 
-        return new AuthyResponse($resp);
+      $query_str = http_build_query($query) . '&' . $logo_query;
+
+      $authy_id = urlencode($authy_id);
+      $resp = $this->rest->post($this->api_url . "/onetouch/json/users/$authy_id/approval_requests", array(
+          'query' => $query_str
+      ));
+
+      return new AuthyResponse($resp);
     }
 
     /**
@@ -417,6 +435,61 @@ class AuthyApi {
         return sprintf(
                 'AuthyPHP/%s (%s-%s-%s; PHP %s)', AuthyApi::VERSION, php_uname('s'), php_uname('r'), php_uname('m'), phpversion()
         );
+    }
+
+    private function __array_to_str( $arr ){
+      if( !is_array($arr) ){
+        return $arr;
+      }
+
+      $return = array();
+      foreach($arr as $k=>$v){
+        if( is_numeric($k) ){
+          $return[] = $this->__array_to_str($v);
+        }else{
+          $return[] = "$k: " . $this->__array_to_str($v);
+        }
+      }
+      $return = implode(', ',$return);
+      $return .= "\n";
+      return $return;
+    }
+
+    private function __clean_array( $arr ){
+      if( empty($arr) ){
+        return null;
+      }
+
+      foreach($arr as $k=>$v){
+          $arr[$k] = !is_array($v) ? substr($v,0,MAX_STRING_SIZE) : $this->__array_to_str($v);
+      }
+
+      return $arr;
+    }
+
+    private function __clean_logos($logos){
+        if( empty($logos) ){
+          return array();
+        }
+
+        if( !is_array($logos) ){
+          throw new AuthyFormatException("Invalid logos format. Array of logo is expected");
+        }
+
+        foreach($logos as $k=>$logo){
+          if( !isset($logo['url']) || !isset($logo['res']) ) {
+            throw new AuthyFormatException("Invalid logo array. 'url' or 'res' in logo object is missing");
+          }
+
+          if( is_array($logo['url']) || is_array($logo['res']) ) {
+            throw new AuthyFormatException("Invalid logo array. 'url' or 'res' must be a string not more than ".MAX_STRING_SIZE.' length');
+          }
+
+          $logos[$k]['url'] = substr($logo['url'],0,MAX_STRING_SIZE);
+          $logos[$k]['res'] = substr($logo['res'],0,MAX_STRING_SIZE);
+        }
+
+        return $logos;
     }
 
     private function __validateVerify($token, $authy_id) {

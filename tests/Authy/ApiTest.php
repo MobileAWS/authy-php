@@ -26,6 +26,7 @@ class ApiTest extends \PHPUnit_Framework_TestCase
         $this->data = $test_data;
 
         $this->client = new AuthyApi($this->data['api_key'],$this->data['api_host']);
+        // print_r($this->client);exit();
         $this->invalid_token = $this->data['invalid_token'];
         $this->valid_token = $this->data['valid_token'];
         $this->email = $this->data['email'];
@@ -263,30 +264,103 @@ class ApiTest extends \PHPUnit_Framework_TestCase
 
     public function testOneTouchRequestWithoutMessage()
     {
-        $response = $this->ot_client->oneTouchVerificationRequest($this->ot_authy_id);
-
-        $this->assertEquals(false, $response->ok());
-        $this->assertRegExp('/Invalid parameter: message/i', $response->message());
+        try{
+          $response = $this->ot_client->oneTouchVerificationRequest($this->ot_authy_id);
+        }catch(Exception $e){
+          $this->assertRegExp('/Invalid message/i', $e->getMessage());
+        }
     }
 
     public function testOneTouchRequestWithEmptyAndInvalidAuthyID()
     {
         try{
-            $response = $this->ot_client->oneTouchVerificationRequest();
+          $response = $this->ot_client->oneTouchVerificationRequest(0);
         }catch(Exception $e){
-            $this->assertRegExp('/Missing argument/i',$e->getMessage());
+          $this->assertRegExp('/Invalid/i', $e->getMessage());
         }
 
-        $response = $this->ot_client->oneTouchVerificationRequest(0);
+        try{
+          $response = $this->ot_client->oneTouchVerificationRequest('123456/1#','Password reset request');
+        }catch(Exception $e){
+          $this->assertRegExp('/Invalid/i', $e->getMessage());
+        }
+    }
 
-        $this->assertEquals(false, $response->ok());
-        $this->assertRegExp('/Invalid parameter: message/i', $response->message());
+    public function testOneTouchWithNoLogo(){
+      $response = $this->ot_client->oneTouchVerificationRequest($this->ot_authy_id,'Password reset request',null,array(
+          'Location' => 'San Francisco, CA'
+      ),array(
+          'IP' => '192.168.1.1',
+      ),null);
 
-        $response = $this->ot_client->oneTouchVerificationRequest('123456/1#','Password reset request');
+      $this->assertEquals(true, $response->ok());
+      $this->assertEquals(true,isset($response->body()->approval_request->uuid));
+    }
 
-        $this->assertEquals(false, $response->ok());
-        $this->assertRegExp('/Unauthorized request/i', $response->message());
-        $this->assertEquals(401, $response->statusCode());
+    public function testOneTouchWithInvalidLogos1(){
+      try{
+        $response = $this->ot_client->oneTouchVerificationRequest($this->ot_authy_id,'Password reset request',null,array(
+            'Location' => 'San Francisco, CA'
+        ),array(
+            'IP' => '192.168.1.1',
+        ),array(
+            array(
+                'url' => 'http://talks.php.net/presentations/slides/intro/php-logo-large.png',
+            ),
+            array(
+                'url' => 'http://www.dynamicline.hu/documents/tartalomkezelo-rendszer/php_thumb.png',
+                'res' => 'low'
+            )
+        ));
+      }catch(Exception $e){
+        $this->assertRegExp('/Invalid logo array/i', $e->getMessage());
+      }
+    }
+
+    public function testOneTouchWithInvalidLogos2(){
+      try{
+        $response = $this->ot_client->oneTouchVerificationRequest($this->ot_authy_id,'Password reset request',null,array(
+            'Location' => 'San Francisco, CA'
+        ),array(
+            'IP' => '192.168.1.1',
+        ),array(
+            array(
+                'url' => 'http://talks.php.net/presentations/slides/intro/php-logo-large.png',
+                'res1' => 'default'
+            ),
+            array(
+                'url' => 'http://www.dynamicline.hu/documents/tartalomkezelo-rendszer/php_thumb.png',
+                'res' => array('low')
+            )
+        ));
+      }catch(Exception $e){
+        $this->assertRegExp('/Invalid logo array/i', $e->getMessage());
+      }
+    }
+
+    public function testOneTouchWithInvalidLogos3(){
+      try{
+        $response = $this->ot_client->oneTouchVerificationRequest($this->ot_authy_id,'Password reset request',null,array(
+            'Location' => 'San Francisco, CA'
+        ),array(
+            'IP' => '192.168.1.1',
+        ),'http://talks.php.net/presentations/slides/intro/php-logo-large.png');
+      }catch(Exception $e){
+        $this->assertRegExp('/Invalid logos format/i', $e->getMessage());
+      }
+    }
+
+    public function testOneTouchWithInvalidExpireSeconds(){
+      try{
+        $response = $this->ot_client->oneTouchVerificationRequest($this->ot_authy_id,'Password reset request','ABC',array(
+            'Location' => 'San Francisco, CA'
+        ),array(
+            'IP' => '192.168.1.1',
+        ));
+      }catch(Exception $e){
+        $this->assertRegExp('/Invalid seconds_to_expire/i', $e->getMessage());
+      }
+
     }
 
     public function testPhoneInfo()
