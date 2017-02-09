@@ -363,6 +363,52 @@ class ApiTest extends \PHPUnit_Framework_TestCase
 
     }
 
+    public function testOneTouchGetCallbackValidGETRequest(){
+      $data = test_getCallbackData('GET');
+      foreach($data as $k=>$v){
+        $$k = $v;
+      }
+      $ot_client = new AuthyApi($api_key,$ot_test_data['api_host']);
+      $params = json_decode($params,true);
+      $is_valid = $this->ot_client->validateOneTouchSignature($signature, $nonce, $method, $url, $params);
+      $this->assertEquals(true, $is_valid);
+    }
+
+    public function testOneTouchGetCallbackInvalidValidNonceGETRequest(){
+      $data = test_getCallbackData('GET');
+      foreach($data as $k=>$v){
+        $$k = $v;
+      }
+      $nonce = 'INVALID STRING';
+      $ot_client = new AuthyApi($api_key,$ot_test_data['api_host']);
+      $params = json_decode($params,true);
+      $is_valid = $this->ot_client->validateOneTouchSignature($signature, $nonce, $method, $url, $params);
+      $this->assertEquals(false, $is_valid);
+    }
+
+    public function testOneTouchGetCallbackValidPOSTRequest(){
+      $data = test_getCallbackData('POST');
+      foreach($data as $k=>$v){
+        $$k = $v;
+      }
+      $ot_client = new AuthyApi($api_key,$ot_test_data['api_host']);
+      $params = json_decode($params,true);
+      $is_valid = $this->ot_client->validateOneTouchSignature($signature, $nonce, $method, $url, $params);
+      $this->assertEquals(true, $is_valid);
+    }
+
+    public function testOneTouchGetCallbackInvalidValidNoncePOSTRequest(){
+      $data = test_getCallbackData('POST');
+      foreach($data as $k=>$v){
+        $$k = $v;
+      }
+      $nonce = 'INVALID STRING';
+      $ot_client = new AuthyApi($api_key,$ot_test_data['api_host']);
+      $params = json_decode($params,true);
+      $is_valid = $this->ot_client->validateOneTouchSignature($signature, $nonce, $method, $url, $params);
+      $this->assertEquals(false, $is_valid);
+    }
+
     public function testPhoneInfo()
     {
         $response = $this->client->PhoneInfo($this->number, '1');
