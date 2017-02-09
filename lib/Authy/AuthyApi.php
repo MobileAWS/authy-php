@@ -228,7 +228,7 @@ class AuthyApi {
      * @return AuthyResponse the server response
      */
     public function oneTouchVerificationRequest($authy_id, $message = null, $expires_in = null, $details = array(), $hidden_details = array(), $logos = array()) {
-      if( !is_numeric($authy_id) && $authy_id > 0 ){
+      if( !is_numeric($authy_id) || $authy_id <= 0 ){
         throw new AuthyFormatException("Invalid authy id");
       }
       if( empty($message) ){
@@ -496,7 +496,7 @@ class AuthyApi {
         $this->__validate_digit($token, "Invalid Token. Only digits accepted.");
         $this->__validate_digit($authy_id, "Invalid Authy id. Only digits accepted.");
         $length = strlen((string) $token);
-        if ($length < 6 or $length > 10) {
+        if ($length < MIN_TOKEN_SIZE or $length > MAX_TOKEN_SIZE) {
             throw new AuthyFormatException("Invalid Token. Unexpected length.");
         }
     }
