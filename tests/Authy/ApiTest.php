@@ -137,7 +137,7 @@ class ApiTest extends \PHPUnit_Framework_TestCase
     {
         $user = $this->client->registerUser($this->email, $this->number, $this->country_code);
         try {
-            $token = $this->client->verifyToken($user->id(), '12345678901');
+            $token = $this->client->verifyToken($user->id(), '1234567890123');
         } catch (AuthyFormatException $e) {
             $this->assertEquals($e->getMessage(), 'Invalid Token. Unexpected length.');
             return;

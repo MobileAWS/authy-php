@@ -102,8 +102,7 @@ class AuthyApi {
                 'query' => $params
             ));
         } catch (Exception $e) {
-            print_r($e);
-            exit();
+            throw new AuthyFormatException($e->getMessage());
         }
 
         return new AuthyToken($resp);
