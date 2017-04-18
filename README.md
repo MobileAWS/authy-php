@@ -133,6 +133,52 @@ If you want to gather additional information about user phone, use phones info.
 
     $authy_api->phoneInfo('111-111-1111', '1');
 
+## OneToch API
+Authy OneTouch uses a very simple API consisting of two endpoints. One for creating approval requests and another to check the status of the approval request. To simplify the process of handling a request, you can set a callback URL in the Authy dashboard. 
+
+### Send Approval Request
+To generate a OneTouch approval request which user can accept or reject on Authy App
+
+    $details = array(
+        'Platform' => 'Mobile - iPhone 6',
+        'Location' => '795 E DRAGRAM TUCSON AZ 85705'
+    );
+    
+    $hidden_details = array(
+        'IP' => '192.168.1.1'
+    );
+    $logos = array(
+        array( 'url' => 'http://www.yourwebsite.com/logo.png', 'res' => 'default'),
+        array( 'url' => 'http://www.yourwebsite.com/logo_low.png', 'res' => 'low')
+    );
+    $message = "Login to awesome App";
+    $authy_id = 123456; // authy_id of the user stored in your database
+    $response = $authy_api->oneTouchVerificationRequest($authy_id,$message,null,$details,$hidden_details,$logos);
+    
+    // Get OneTouch approval request UUID to check if user accepted or rejected later
+    $oneTouchRequestUUID = $response->body()->approval_request->uuid;
+    
+### Check OneTouch UUID status
+If you wan to check status (accepted/rejected) of OneTouch approval request UUID
+
+    $respone = $authy_api->oneTouchVerificationCheck($authy_id,$oneTouchRequestUUID);
+    echo $respone->body()->approval_request->status
+
+### OneTouch Callback implementation
+Use the following example to set callback handler
+
+    $params = $authy_api->oneTouchGetCallbackParams();
+    $url = 'https://example.com/app/callback';
+    $headers = apache_request_headers();
+    $nonce = $headers['X-Authy-Signature-Nonce'];
+    $signature = $headers['X-Authy-Signature'];
+    $method = $_SERVER['REQUEST_METHOD'];
+    $ok = $authy_api->validateOneTouchSignature($signature, $nonce, $method, $url, $params);
+    if( !$ok ){
+        // Not a valid request by Authy, probably you want to ignore it
+    }
+    echo $params['status'];
+
 ## Tests
 
 You will need to install composer `https://getcomposer.org/download/`

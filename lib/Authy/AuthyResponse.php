@@ -37,9 +37,9 @@ class AuthyResponse
     public function __construct($raw_response)
     {
         $this->raw_response = $raw_response;
-        $this->body = (! isset($raw_response->body)) ? $raw_response->json(['object' => true]) : $raw_response->body;;
+        $this->body =  json_decode($raw_response->getBody());
         $this->errors = new \stdClass();
-
+        
         // Handle errors
         if (isset($this->body->errors)) {
             $this->errors = $this->body->errors; // when response is {errors: {}}
@@ -47,6 +47,9 @@ class AuthyResponse
         } elseif ($raw_response->getStatusCode() == 400) {
             $this->errors = $this->body; // body here is a stdClass
             $this->body = new \stdClass();
+        } elseif ($raw_response->getStatusCode() == 401) {
+            $this->errors = (object) array("error" => array('message' => 'Unauthorized request'));
+            $this->body = (object) array('message' => 'Unauthorized request');
         } elseif (!$this->ok() && gettype($this->body) == 'string') {
              // the response was an error so put the body as an error
             $this->errors = (object) array("error" => $this->body);
@@ -84,6 +87,11 @@ class AuthyResponse
         return $this->errors;
     }
 
+    public function body()
+    {
+        return $this->body;
+    }
+
     public function message()
     {
         return $this->body->message;
@@ -97,5 +105,15 @@ class AuthyResponse
     public function bodyvar($var)
     {
         return isset($this->body->$var) ? $this->body->$var: null;
+    }
+
+    /**
+     * To get request status code
+     *
+     * @return response code
+     */
+    public function statusCode()
+    {
+        return $this->raw_response->getStatusCode();
     }
 }
