@@ -185,6 +185,9 @@ You will need to install composer `https://getcomposer.org/download/`
 and install dependencies with `composer install --no-dev`. Also
 You will need to install phpunit `https://phpunit.de/manual/current/en/installation.html`
 
+### OneTouch Tests
+For OneTouch Tests to succeed, you will need to modify $ot_test_data with production values in tests/Authy/TestHelper.php with production api_key, api_host, email, country_code, mobile_number and authy_id
+
 Then you can run test by executing this command `make`
 
 ### More…
