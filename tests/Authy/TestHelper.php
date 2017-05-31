@@ -14,10 +14,10 @@ $test_data = array(
 $ot_test_data = array(
     'api_key' => "YOUR API KEY",
     'api_host' => "https://api.authy.com",
-    'email' => 'user@example.com',
-    'mobile_number' => '305-456-2345', //'305-456-2345'
-    'country_code' => 1,
-    'authy_id' => 123456789
+    'email' => 'YOUR EMAIL',
+    'mobile_number' => 'YOUR MOBILE NUMBER', //'305-456-2345'
+    'country_code' => 1, //'YOUR COUNTRY CODE'
+    'authy_id' => 1 //'YOUR AUTHY ID'
 );
 
 // OneTouch Callback mock data

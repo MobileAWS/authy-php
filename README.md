@@ -4,7 +4,16 @@ A php library for using the Authy API.
 
 ## Installation
 
-This library requires PHP 5.3+
+This library requires PHP 5.5+
+
+Quick Steps for Installation
+1. Git clone locally.
+2. CD into the authy-php directory.
+3. Within the  authy-php directory, execute composer install. Composer will suck down the required libs.
+4. Open tests/Authy/TestHelper.php with your favorite editor, e.g. vi.
+5. Update the following fields of $ot_test_data with your authy account information: api_keyy, email, mobile_number, country_code, and authy_id.
+6. Composer will have installed phpunit. If you're on a Mac and you've used homebrew, then use vendor/bin/phpunit.
+7. All of the test cases should succeed.  
 
 ### Install via composer:
 
@@ -14,7 +23,7 @@ Include it in your `composer.json` as follows:
 
 	{
 	    "require": {
-	        "authy/php": "2.*"
+	        "authy/php": "5.5"
 	    }
 	}
 

@@ -10,6 +10,7 @@ class ApiOneTouchTest extends \PHPUnit_Framework_TestCase
     private $invalid_token;
     private $valid_token;
     private $data;
+    private $ot_data;
     private $email;
     private $number;
     private $country_code;
@@ -37,9 +38,10 @@ class ApiOneTouchTest extends \PHPUnit_Framework_TestCase
 
         // for one touch
         global $ot_test_data;
-        if( !empty($ot_test_data['api_key']) && !empty($ot_test_data['api_host']) ){
-            $this->ot_client = new AuthyApi($ot_test_data['api_key'],$ot_test_data['api_host']);
-            $this->ot_authy_id = $ot_test_data['authy_id'];
+        $this->ot_data = $ot_test_data;
+        if( !empty($this->ot_data['api_key']) && !empty($this->ot_data['api_host']) ){
+            $this->ot_client = new AuthyApi($this->ot_data['api_key'],$this->ot_data['api_host']);
+            $this->ot_authy_id = $this->ot_data['authy_id'];
         }
 
 
@@ -180,7 +182,7 @@ class ApiOneTouchTest extends \PHPUnit_Framework_TestCase
       foreach($data as $k=>$v){
         $$k = $v;
       }
-      $ot_client = new AuthyApi($api_key,$ot_test_data['api_host']);
+      $ot_client = new AuthyApi($api_key,$this->ot_data['api_host']);
       $params = json_decode($params,true);
       $is_valid = $this->ot_client->validateOneTouchSignature($signature, $nonce, $method, $url, $params);
       $this->assertEquals(true, $is_valid);
@@ -192,7 +194,7 @@ class ApiOneTouchTest extends \PHPUnit_Framework_TestCase
         $$k = $v;
       }
       $nonce = 'INVALID STRING';
-      $ot_client = new AuthyApi($api_key,$ot_test_data['api_host']);
+      $ot_client = new AuthyApi($api_key,$this->ot_data['api_host']);
       $params = json_decode($params,true);
       $is_valid = $this->ot_client->validateOneTouchSignature($signature, $nonce, $method, $url, $params);
       $this->assertEquals(false, $is_valid);
@@ -203,7 +205,7 @@ class ApiOneTouchTest extends \PHPUnit_Framework_TestCase
       foreach($data as $k=>$v){
         $$k = $v;
       }
-      $ot_client = new AuthyApi($api_key,$ot_test_data['api_host']);
+      $ot_client = new AuthyApi($api_key,$this->ot_data['api_host']);
       $params = json_decode($params,true);
       $is_valid = $this->ot_client->validateOneTouchSignature($signature, $nonce, $method, $url, $params);
       $this->assertEquals(true, $is_valid);
@@ -215,7 +217,7 @@ class ApiOneTouchTest extends \PHPUnit_Framework_TestCase
         $$k = $v;
       }
       $nonce = 'INVALID STRING';
-      $ot_client = new AuthyApi($api_key,$ot_test_data['api_host']);
+      $ot_client = new AuthyApi($api_key,$this->ot_data['api_host']);
       $params = json_decode($params,true);
       $is_valid = $this->ot_client->validateOneTouchSignature($signature, $nonce, $method, $url, $params);
       $this->assertEquals(false, $is_valid);
