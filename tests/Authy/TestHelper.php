@@ -17,9 +17,7 @@ $ot_test_data = array(
     'email' => 'user@example.com',
     'mobile_number' => '305-456-2345', //'305-456-2345'
     'country_code' => 1,
-    'authy_id' => 123456789,
-    'invalid_token' => '1234567',
-    'valid_token' => '0000000'
+    'authy_id' => 123456789
 );
 
 // OneTouch Callback mock data
