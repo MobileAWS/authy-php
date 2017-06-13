@@ -308,7 +308,21 @@ class AuthyApi {
 
 
      public function validateOneTouchSignature($signature, $nonce, $method, $url, $params) {
-         $sorted_params = http_build_query($this->_sort_params($params));
+         $params = $this->_fix_null_params($params);
+
+         $logos = is_array($params['approval_request']['logos']) ? $params['approval_request']['logos'] : array();
+         $logo_q = '';
+         foreach($logos as $logo){
+           $logo_q .= '&'.urlencode('approval_request[logos][][url]').'='.urlencode($logo['url']).'&'.urlencode('approval_request[logos][][res]').'='.urlencode($logo['res']);
+         }
+
+         if( !empty($logo_q) ){
+            unset($params['approval_request']['logos']);
+         }
+
+         $http_params = explode('&',http_build_query($params).$logo_q);
+         sort($http_params);
+         $sorted_params = implode('&',$http_params);
          $data = $nonce."|".$method."|".$url."|".$sorted_params;
          $calculated_signature = base64_encode(hash_hmac('sha256', $data,$this->api_key,true));
          return $calculated_signature == $signature;
@@ -331,21 +345,19 @@ class AuthyApi {
     }
 
     /**
-     * Sort params in case-sensitive order
+     * replaces null values with empty strings
      *
      * * @param mixed $value
      *
      * @return array
      */
-    private function _sort_params($params) {
+    private function _fix_null_params($params) {
         $new_params = array();
         foreach ($params as $k => $v) {
             if (is_array($v)) {
-                ksort($v);
                 $new_params[$k] = $v;
                 foreach ($v as $k2 => $v2) {
                     if (is_array($v2)) {
-                        ksort($v2);
                         $new_params[$k][$k2] = $v2;
                         foreach ($v2 as $k3 => $v3) {
                             $v3 = $this->_check_bool($v3);
@@ -361,7 +373,6 @@ class AuthyApi {
                 $new_params[$k] = $v;
             }
         }
-        ksort($new_params);
         return $new_params;
     }
 
